@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type MiniSearch from "minisearch";
 import type { SearchResult } from "minisearch";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { findingLabel } from "@/lib/findings";
 import { createIndex, runSearch, type IndexedDoc } from "@/lib/search/index";
 import type { ReviewSummary, SearchDoc, TopicRef } from "@/lib/sanity/types";
@@ -52,9 +52,39 @@ export function Browse({
 }) {
   const [query, setQuery] = useState(initialQuery ?? "");
   const [topic, setTopic] = useState(initialTopic ?? "");
-  const [results, setResults] = useState<(SearchResult & IndexedDoc)[] | null>(null);
+  type Hits = (SearchResult & IndexedDoc)[];
+  // Results are keyed by the query that produced them, so stale hits are never shown.
+  const [results, setResults] = useState<{ q: string; topic: string; hits: Hits } | null>(null);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
-  const indexRef = useRef<MiniSearch<IndexedDoc> | null>(null);
+  const indexPromise = useRef<Promise<MiniSearch<IndexedDoc>> | null>(null);
+
+  // Loads the published index exactly once per page, no matter how fast the user types.
+  const loadIndex = useCallback(() => {
+    if (!indexPromise.current) {
+      setStatus("loading");
+      indexPromise.current = fetch("/search-index.json")
+        .then((r) => {
+          if (!r.ok) throw new Error(`Index request failed: ${r.status}`);
+          return r.json() as Promise<{ docs: SearchDoc[] }>;
+        })
+        .then(({ docs }) => {
+          const index = createIndex(docs);
+          setStatus("ready");
+          return index;
+        })
+        .catch((err) => {
+          indexPromise.current = null; // allow a retry on the next keystroke
+          setStatus("error");
+          throw err;
+        });
+    }
+    return indexPromise.current;
+  }, []);
+
+  // Prefetch on mount so the first search is instant. The index is a few kilobytes.
+  useEffect(() => {
+    loadIndex().catch(() => {});
+  }, [loadIndex]);
 
   // Keep the URL shareable without triggering a navigation.
   useEffect(() => {
@@ -65,39 +95,20 @@ export function Browse({
     window.history.replaceState(null, "", qs ? `/?${qs}` : "/");
   }, [query, topic]);
 
-  // Load the published index the first time a query is typed.
+  // Run the search whenever the query or topic changes, waiting for the index if needed.
   useEffect(() => {
-    if (!query.trim() || indexRef.current || status === "loading") return;
-    let cancelled = false;
-    setStatus("loading");
-    fetch("/search-index.json")
-      .then((r) => {
-        if (!r.ok) throw new Error(`Index request failed: ${r.status}`);
-        return r.json() as Promise<{ docs: SearchDoc[] }>;
-      })
-      .then(({ docs }) => {
-        if (cancelled) return;
-        indexRef.current = createIndex(docs);
-        setStatus("ready");
-      })
-      .catch(() => {
-        if (!cancelled) setStatus("error");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [query, status]);
-
-  // Run the search whenever the query, topic, or index readiness changes.
-  useEffect(() => {
-    const index = indexRef.current;
     const q = query.trim();
-    if (!q || !index) {
-      setResults(null);
-      return;
-    }
-    setResults(runSearch(index, q, topic) as (SearchResult & IndexedDoc)[]);
-  }, [query, topic, status]);
+    if (!q) return;
+    let stale = false;
+    loadIndex()
+      .then((index) => {
+        if (!stale) setResults({ q, topic, hits: runSearch(index, q, topic) as Hits });
+      })
+      .catch(() => {});
+    return () => {
+      stale = true;
+    };
+  }, [query, topic, loadIndex]);
 
   const listed = useMemo(
     () => (topic ? reviews.filter((r) => r.topics?.some((t) => t.slug === topic)) : reviews),
@@ -105,6 +116,7 @@ export function Browse({
   );
 
   const showingSearch = query.trim().length > 0;
+  const hits = results && results.q === query.trim() && results.topic === topic ? results.hits : null;
 
   return (
     <section aria-labelledby="browse-heading">
@@ -146,17 +158,17 @@ export function Browse({
 
       <p className="small muted" role="status" aria-live="polite">
         {showingSearch
-          ? status === "loading"
-            ? "Loading search index…"
+          ? hits === null && status !== "error"
+            ? "Searching…"
             : status === "error"
               ? "Search is unavailable right now. Browse the list below instead."
-              : `${results?.length ?? 0} result${results?.length === 1 ? "" : "s"}`
+              : `${hits?.length ?? 0} result${hits?.length === 1 ? "" : "s"}`
           : `${listed.length} review${listed.length === 1 ? "" : "s"}`}
       </p>
 
-      {showingSearch && results ? (
+      {showingSearch && hits ? (
         <ul className="list">
-          {results.map((r) => {
+          {hits.map((r) => {
             const ex = excerptFor(r, r.terms);
             return (
               <li key={r.id}>
