@@ -1,6 +1,6 @@
 import type { PortableTextBlock } from "@portabletext/react";
 
-export type TopicRef = { _id: string; title: string; slug: string };
+export type TopicRef = { _id: string; title: string; slug: string; description?: string; count?: number };
 
 export type SourceSummary = {
   _id: string;
@@ -48,10 +48,13 @@ export type Capture = {
   archiveNote?: string;
 };
 
+export type ReviewImage = { url: string; alt?: string };
+
 export type ReviewSummary = {
   _id: string;
   slug: string;
   question: string;
+  image?: ReviewImage | null;
   shortAnswer?: string;
   finding?: string;
   claimType?: string;

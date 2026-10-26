@@ -1,4 +1,4 @@
-# Tibet / Evidence
+# Factgaurd Tibet
 
 A research website where readers find a claim about Tibet, read an evidence-based assessment, and inspect the original statement and supporting documents.
 
@@ -61,6 +61,15 @@ Operational scripts in `studio/scripts/` (run with `npx sanity exec <script> --w
 When the site gets a custom domain: add it to Vercel, add it as a CORS origin in Sanity, run `SITE_URL=https://<domain> npx sanity exec scripts/set-webhook-secret.ts --with-user-token`, and set `SANITY_STUDIO_PREVIEW_URL` to it before the next Studio deploy.
 
 Draft preview: open the **Presentation** tab in the Studio. It loads the site with draft mode on, using the read token, so unpublished reviews can be checked in the real layout.
+
+## Design
+
+The UI is ported from the "Sarsa static editorial template" (a Tailwind 4 + Alpine rebuild supplied as `sarsa-template-source.zip`): utility bar, centred masthead with the Factgaurd Tibet logo, hero plus side stories, latest grid with a "Start here" list, a searchable archive with topic pills, and a centred serif article page. Alpine interactions were rewritten as React components (`web/components/SiteHeader.tsx`, `Browse.tsx`, `CopyLink.tsx`). The template's photographs were not used; they were unlicensed demo images.
+
+- Styles live in `web/app/globals.css`. Brand green is the `--brand` variable (currently `#0b6a3b`, estimated from the logo; replace with the official value if there is one). Dark mode follows the system preference and the toggle in the masthead, stored per browser.
+- Reviews usually have no photograph. Cards and the hero show a typographic "plate" with the finding instead. A review can carry an optional lead image (with alt text and credit) set in the Studio.
+- The logo is `web/public/logo.png`, the supplied PNG with a white background. It is blended into the page in light mode and inverted in dark mode. A transparent SVG or PNG would render more cleanly; drop it in with the same name.
+- Navigation lists only topics that have at least one published review, the six busiest. The archive's topic pills follow the same rule.
 
 ## Content model
 

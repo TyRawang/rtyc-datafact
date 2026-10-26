@@ -6,7 +6,7 @@ export function TopicTags({ topics }: { topics?: TopicRef[] | null }) {
   return (
     <span>
       {topics.map((t) => (
-        <Link key={t._id} className="tag" href={`/?topic=${encodeURIComponent(t.slug)}`}>
+        <Link key={t._id} className="tag" href={`/reviews?topic=${encodeURIComponent(t.slug)}`}>
           {t.title}
         </Link>
       ))}

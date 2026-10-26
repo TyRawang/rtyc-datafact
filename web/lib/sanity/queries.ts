@@ -7,10 +7,13 @@ const sourceSummary = `{
   "fileUrl": select(hostingPolicy == "full" => file.asset->url, null)
 }`;
 
+const imageProjection = `"image": select(defined(image.asset) => { "url": image.asset->url, "alt": image.alt }, null)`;
+
 const reviewSummary = `{
   _id,
   "slug": slug.current,
   question,
+  ${imageProjection},
   shortAnswer,
   finding,
   claimType,
@@ -27,6 +30,7 @@ export const reviewBySlugQuery = defineQuery(`
     _id,
     "slug": slug.current,
     question,
+    ${imageProjection},
     shortAnswer,
     finding,
     claimType,
@@ -59,12 +63,25 @@ export const reviewBySlugQuery = defineQuery(`
   }
 `);
 
+/** Up to three other reviews sharing a topic, newest first, falling back to the newest overall. */
+export const relatedReviewsQuery = defineQuery(`
+  *[_type == "claimReview" && defined(slug.current) && _id != $id && count((topics[]._ref)[@ in $topicIds]) > 0]
+    | order(reviewDate desc)[0...3] ${reviewSummary}
+`);
+
+export const latestReviewsQuery = defineQuery(`
+  *[_type == "claimReview" && defined(slug.current) && _id != $id] | order(reviewDate desc)[0...3] ${reviewSummary}
+`);
+
 export const reviewSlugsQuery = defineQuery(`
   *[_type == "claimReview" && defined(slug.current)].slug.current
 `);
 
 export const allTopicsQuery = defineQuery(`
-  *[_type == "topic"] | order(title asc){ _id, title, "slug": slug.current, description }
+  *[_type == "topic"] | order(title asc){
+    _id, title, "slug": slug.current, description,
+    "count": count(*[_type == "claimReview" && defined(slug.current) && references(^._id)])
+  }
 `);
 
 export const searchDocsQuery = defineQuery(`

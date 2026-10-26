@@ -1,47 +1,46 @@
 import type { Metadata } from "next";
 import { draftMode } from "next/headers";
 import { VisualEditing } from "next-sanity/visual-editing";
-import Link from "next/link";
 import "./globals.css";
-import { SiteNav } from "@/components/SiteNav";
+import { SiteFooter } from "@/components/SiteFooter";
+import { SiteHeader } from "@/components/SiteHeader";
+import { ThemeScript } from "@/components/ThemeScript";
+import { sanityFetch } from "@/lib/sanity/fetch";
+import { allTopicsQuery } from "@/lib/sanity/queries";
+import type { TopicRef } from "@/lib/sanity/types";
 
 export const metadata: Metadata = {
-  title: { default: "Tibet / Evidence", template: "%s · Tibet / Evidence" },
+  title: { default: "Factgaurd Tibet", template: "%s · Factgaurd Tibet" },
   description:
-    "Evidence-based reviews of specific claims about Tibet, with the original statements and supporting documents.",
+    "Evidence-based reviews of specific claims about Tibet, with the original statements and the documents behind each finding. A project by Tibetan Youth Congress.",
   robots: { index: true, follow: true },
 };
 
-export default async function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const { isEnabled: isDraft } = await draftMode();
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const [{ isEnabled: isDraft }, topics] = await Promise.all([
+    draftMode(),
+    sanityFetch<TopicRef[]>({ query: allTopicsQuery }),
+  ]);
+  // Only topics with at least one published review appear in navigation; the nav shows the busiest six.
+  const liveTopics = (topics ?? []).filter((t) => (t.count ?? 0) > 0);
+  const navTopics = [...liveTopics].sort((a, b) => (b.count ?? 0) - (a.count ?? 0)).slice(0, 6);
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <ThemeScript />
+      </head>
       <body>
-        <a className="skip-link" href="#main">Skip to content</a>
+        <a className="skip-link" href="#main">
+          Skip to content
+        </a>
         {isDraft && (
           <div className="banner" role="status">
-            Draft preview: you are seeing unpublished content.{" "}
-            <a href="/api/draft/disable">Exit preview</a>
+            Draft preview: you are seeing unpublished content. <a href="/api/draft/disable">Exit preview</a>
           </div>
         )}
-        <header className="site-header">
-          <div className="inner">
-            <Link className="brand" href="/">Tibet / Evidence</Link>
-            <SiteNav />
-          </div>
-        </header>
+        <SiteHeader topics={navTopics} />
         <main id="main">{children}</main>
-        <footer className="site-footer">
-          <div className="inner">
-            Wireframe build. Every review links to its original statement and
-            supporting sources. See <a href="/method">Method</a> and{" "}
-            <a href="/corrections">Corrections</a>.
-          </div>
-        </footer>
+        <SiteFooter topics={liveTopics} />
         {isDraft && <VisualEditing />}
       </body>
     </html>

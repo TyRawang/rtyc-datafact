@@ -45,6 +45,27 @@ export const claimReview = defineType({
       validation: (r) => r.required(),
     }),
     defineField({
+      name: "image",
+      title: "Lead image (optional)",
+      type: "image",
+      group: "question",
+      options: { hotspot: true },
+      description: "Shown on cards and at the top of the review. Without one, a typographic plate with the finding is used. Only upload images you have the right to publish.",
+      fields: [
+        defineField({
+          name: "alt",
+          title: "Alternative text",
+          type: "string",
+          validation: (r) =>
+            r.custom((value, ctx) => {
+              const parent = ctx.parent as { asset?: unknown } | undefined;
+              return parent?.asset && !value?.trim() ? "Describe the image for screen readers." : true;
+            }),
+        }),
+        defineField({ name: "credit", title: "Credit / licence", type: "string" }),
+      ],
+    }),
+    defineField({
       name: "searchKeywords",
       title: "Search keywords",
       type: "array",
