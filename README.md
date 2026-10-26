@@ -1,1 +1,84 @@
-# rtyc-datafact
+# Tibet / Evidence
+
+A research website where readers find a claim about Tibet, read an evidence-based assessment, and inspect the original statement and supporting documents.
+
+Two apps:
+
+| Folder | What it is | Runs at |
+|---|---|---|
+| `web/` | Public site (Next.js 16, App Router). Reads content from Sanity, or from `web/fixtures/dataset.ndjson` when no Sanity project is configured. | http://localhost:3000 |
+| `studio/` | Editing dashboard (Sanity Studio 6). Separate origin from the public site on purpose. | http://localhost:3333 |
+
+Search is MiniSearch in the browser over a published-only index served at `/search-index.json`, with an `Intl.Segmenter` tokenizer so Chinese and Tibetan queries work.
+
+## Quick start (no Sanity account needed)
+
+```bash
+cd web
+npm install
+npm run dev
+```
+
+Open http://localhost:3000. With no `NEXT_PUBLIC_SANITY_PROJECT_ID` set, the site reads the sample dataset in `web/fixtures/dataset.ndjson` through `groq-js`, so every page and the search work offline. The sample content is placeholder text marked `[Sample]`.
+
+Run the search checks (English, Chinese, Tibetan, keyword aliases, topic filter) against a running site:
+
+```bash
+npm run check:search -- http://localhost:3000
+```
+
+## Sanity project
+
+The live project is **RTYC** (project ID `2t4727im`, dataset `production`, manage at https://www.sanity.io/manage/project/2t4727im). Local setup is already done on the original development machine:
+
+- `studio/.env` holds the project ID and the preview URL.
+- `web/.env.local` holds the project ID, a **Viewer** read token for draft preview, and a webhook secret. Both files are gitignored. Never commit or paste the token.
+- CORS origins `http://localhost:3000` and `http://localhost:3333` are allowed. Add the production site domain under API → CORS origins when it exists.
+- The sample content is imported. Re-import with `npm run import:fixtures` in `studio/` (replaces documents with the same IDs only).
+
+Setting up another machine:
+
+```bash
+cd studio && npm install && npx sanity login --provider sanity
+npm run setup:web-env        # creates a viewer token and writes ../web/.env.local
+npm run dev                  # Studio on http://localhost:3333
+cd ../web && npm install && npm run dev   # site on http://localhost:3000
+```
+
+Still to do at deployment time:
+
+1. Deploy `web/` to a Node host (Vercel is the simplest) with the same env vars as `web/.env.local`.
+2. Deploy the Studio with `npm run deploy` in `studio/`, and set `SANITY_STUDIO_PREVIEW_URL` to the production site URL.
+3. Create a webhook under API → Webhooks pointing at `https://<site>/api/revalidate`, trigger on create, update, and delete for all document types, and paste the value of `SANITY_REVALIDATE_SECRET` from `web/.env.local` as its secret. Published changes then appear on the next request; without it, pages refresh within an hour.
+
+Draft preview: open the **Presentation** tab in the Studio. It loads the site with draft mode on, using the read token, so unpublished reviews can be checked in the real layout.
+
+## Content model
+
+| Type | Purpose |
+|---|---|
+| **Claim review** | One statement, assessed. Question, slug, topics, claim type, the exact claim in its original language with translation and translator, speaker, publisher, statement date, original URL, preserved statement (capture), short answer, finding, evidence, limitations, search keywords, public byline, review date, corrections. |
+| **Source** | One record per document: title, publisher, date, original URL, language, rights status, hosting policy (full copy, excerpt and link, or private), optional file, context notes, related documents. |
+| **Citation** | An annotation inside a review's evidence text: a reference to a Source plus page or section, quoted passage, translation, and what the passage supports. Citations are numbered in reading order on the page. |
+| **Dataset** | A tabular file with its source, period, coverage, units, methodology, and limitations. |
+| **Topic** | Editable browse facet with a stable slug. |
+| **Page** | Editorial pages. The page with slug `method` is shown at `/method` above the fixed finding definitions. |
+
+Rules enforced by the schema:
+
+- A review cannot be published without a finding, a claim type, a statement date, a short answer, evidence, at least one topic, and a record of how the statement was preserved (a captured file, a Wayback URL, or an explicit note that no archive could be made).
+- A non-English claim requires an English translation.
+- A source marked **private** cannot have a file uploaded, because any file in Sanity has a public URL. Keep private captures outside the CMS.
+- Sanity refuses to delete a source that a review still references.
+
+The finding vocabulary lives in `web/lib/findings.ts` and `studio/lib/findings.ts`. Change both together.
+
+## Editorial workflow
+
+Single editor. Drafts stay in Sanity until **Publish** is pressed; the public site, the search index, and the corrections log only ever read published documents. Preview drafts from the Studio's Presentation tab before publishing.
+
+After publishing, record every material change as a correction entry on the review. It appears on the review page and in the public log at `/corrections`.
+
+## What is deliberately not built yet
+
+PDF text extraction and OCR, CSV-to-table rendering, charts, bulk imports, public submissions, multilingual UI, and any form of AI-generated text.

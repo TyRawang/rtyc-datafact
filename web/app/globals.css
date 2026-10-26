@@ -1,0 +1,104 @@
+/* Wireframe styling: grayscale, borders, system fonts. Swap for a real design later. */
+:root {
+  --ink: #111;
+  --muted: #555;
+  --line: #bbb;
+  --panel: #f4f4f4;
+  --bg: #fff;
+  --accent: #000;
+  --max: 56rem;
+}
+
+* { box-sizing: border-box; }
+
+html { font-size: 17px; }
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--bg);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial,
+    "Noto Sans", "Noto Sans CJK SC", "Noto Sans SC", "PingFang SC", "Microsoft YaHei",
+    "Noto Sans Tibetan", "Noto Serif Tibetan", "Kailasa", "Microsoft Himalaya", sans-serif;
+  line-height: 1.55;
+}
+
+a { color: var(--ink); }
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute; left: -999px; top: 0; background: #fff; padding: .5rem; z-index: 10;
+}
+.skip-link:focus { left: .5rem; }
+
+.site-header, .site-footer {
+  border-bottom: 2px solid var(--ink);
+  padding: .75rem 1rem;
+}
+.site-footer { border-bottom: 0; border-top: 2px solid var(--ink); color: var(--muted); font-size: .9rem; margin-top: 3rem; }
+.site-header .inner, .site-footer .inner, main {
+  max-width: var(--max); margin: 0 auto; width: 100%;
+}
+.site-header .inner { display: flex; flex-wrap: wrap; gap: .5rem 1.5rem; align-items: baseline; }
+.brand { font-weight: 700; text-decoration: none; font-size: 1.1rem; }
+.nav { display: flex; flex-wrap: wrap; gap: .25rem 1rem; margin: 0; padding: 0; list-style: none; }
+.nav a { text-decoration: none; border-bottom: 1px dashed var(--line); }
+.nav a[aria-current="page"] { border-bottom: 2px solid var(--ink); font-weight: 600; }
+
+main { padding: 1.5rem 1rem 2rem; }
+
+h1 { font-size: 1.7rem; line-height: 1.25; margin: 0 0 1rem; }
+h2 { font-size: 1.2rem; margin: 2rem 0 .5rem; border-bottom: 1px solid var(--line); padding-bottom: .25rem; }
+h3 { font-size: 1rem; margin: 1.25rem 0 .25rem; }
+p { margin: .5rem 0; }
+.muted { color: var(--muted); }
+.small { font-size: .9rem; }
+
+.panel { border: 1px solid var(--line); background: var(--panel); padding: 1rem; margin: 1rem 0; }
+.panel-plain { border: 1px solid var(--line); padding: 1rem; margin: 1rem 0; }
+
+.badge {
+  display: inline-block; border: 2px solid var(--ink); padding: .1rem .5rem; font-weight: 700;
+  font-size: .85rem; text-transform: uppercase; letter-spacing: .03em; background: #fff;
+}
+.tag { display: inline-block; border: 1px solid var(--line); padding: 0 .4rem; font-size: .8rem; margin-right: .3rem; background: #fff; }
+
+dl.meta { display: grid; grid-template-columns: max-content 1fr; gap: .25rem 1rem; margin: .5rem 0; }
+dl.meta dt { color: var(--muted); font-size: .9rem; }
+dl.meta dd { margin: 0; overflow-wrap: anywhere; }
+@media (max-width: 480px) { dl.meta { grid-template-columns: 1fr; } dl.meta dt { margin-top: .5rem; } }
+
+table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+th, td { border: 1px solid var(--line); padding: .4rem .5rem; text-align: left; vertical-align: top; }
+th { background: var(--panel); }
+.table-wrap { overflow-x: auto; }
+
+.list { list-style: none; margin: 0; padding: 0; }
+.list > li { border-top: 1px solid var(--line); padding: .9rem 0; }
+.list > li:last-child { border-bottom: 1px solid var(--line); }
+.list h3 { margin: 0 0 .25rem; font-size: 1.05rem; }
+.list h3 a { text-decoration: none; border-bottom: 1px solid var(--ink); }
+
+.toolbar { display: flex; flex-wrap: wrap; gap: .75rem; align-items: end; margin: 1rem 0; }
+.toolbar label { display: block; font-size: .85rem; color: var(--muted); }
+.toolbar input[type="search"] { font: inherit; padding: .4rem .5rem; border: 1px solid var(--ink); min-width: 16rem; width: 100%; }
+.toolbar .grow { flex: 1 1 16rem; }
+.chips { display: flex; flex-wrap: wrap; gap: .4rem; margin: .5rem 0 1rem; }
+.chip { font: inherit; font-size: .85rem; border: 1px solid var(--ink); background: #fff; padding: .15rem .6rem; cursor: pointer; }
+.chip[aria-pressed="true"] { background: var(--ink); color: #fff; }
+
+.claim { border-left: 4px solid var(--ink); padding-left: 1rem; }
+.claim .original { font-size: 1.1rem; margin: .25rem 0; }
+
+.cite-ref { text-decoration: none; font-size: .75em; vertical-align: super; padding: 0 .15em; border-bottom: 1px solid var(--ink); }
+ol.citations { padding-left: 1.5rem; }
+ol.citations li { margin: .75rem 0; }
+ol.citations blockquote { margin: .25rem 0; padding: .25rem .75rem; border-left: 3px solid var(--line); color: #222; }
+
+.banner { background: #000; color: #fff; padding: .4rem 1rem; font-size: .9rem; }
+.banner a { color: #fff; }
+
+mark { background: #ddd; }
