@@ -91,7 +91,12 @@ export default async function ReviewPage({ params }: Props) {
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img className="photo" src={`${review.image.url}?w=1800&auto=format`} alt={review.image.alt ?? ""} />
               </div>
-              {review.image.alt && <p className="meta mt-3">{review.image.alt}</p>}
+              {(review.image.alt || review.image.credit) && (
+                <p className="meta mt-3">
+                  {review.image.alt}
+                  {review.image.credit && <span className="muted"> · {review.image.credit}</span>}
+                </p>
+              )}
             </>
           )}
         </div>

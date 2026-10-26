@@ -48,7 +48,7 @@ export type Capture = {
   archiveNote?: string;
 };
 
-export type ReviewImage = { url: string; alt?: string };
+export type ReviewImage = { url: string; alt?: string; credit?: string };
 
 export type ReviewSummary = {
   _id: string;

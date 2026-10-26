@@ -7,7 +7,7 @@ const sourceSummary = `{
   "fileUrl": select(hostingPolicy == "full" => file.asset->url, null)
 }`;
 
-const imageProjection = `"image": select(defined(image.asset) => { "url": image.asset->url, "alt": image.alt }, null)`;
+const imageProjection = `"image": select(defined(image.asset) => { "url": image.asset->url, "alt": image.alt, "credit": image.credit }, null)`;
 
 const reviewSummary = `{
   _id,
