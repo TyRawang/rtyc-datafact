@@ -95,13 +95,21 @@ export type Dataset = {
   limitations?: string;
 };
 
+export type SearchDocType = "review" | "source" | "dataset";
+
 export type SearchDoc = {
   id: string;
-  question: string;
+  type: SearchDocType;
+  url: string;
+  title: string;
+  question?: string;
   claimText?: string;
   claimTranslation?: string;
   shortAnswer?: string;
   evidenceText?: string;
+  /** Secondary text for sources and datasets: publisher, notes, description, methodology. */
+  body?: string;
+  subtitle?: string;
   finding?: string;
   topics?: string[];
   topicTitles?: string[];

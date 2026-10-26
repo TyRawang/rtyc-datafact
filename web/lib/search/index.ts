@@ -9,7 +9,9 @@ export type IndexedDoc = SearchDoc & {
 };
 
 const FIELDS: (keyof IndexedDoc)[] = [
+  "title",
   "question",
+  "body",
   "claimText",
   "claimTranslation",
   "keywordsText",
@@ -20,7 +22,9 @@ const FIELDS: (keyof IndexedDoc)[] = [
 
 /** Question titles and editor-supplied keywords outrank body text. */
 const BOOST: Partial<Record<keyof IndexedDoc, number>> = {
+  title: 4,
   question: 4,
+  body: 1,
   keywordsText: 3,
   claimText: 2,
   claimTranslation: 2,
@@ -43,6 +47,11 @@ export function createIndex(docs: SearchDoc[] = []) {
     fields: FIELDS as string[],
     storeFields: [
       "id",
+      "type",
+      "url",
+      "title",
+      "subtitle",
+      "body",
       "question",
       "claimText",
       "claimTranslation",
@@ -61,10 +70,14 @@ export function createIndex(docs: SearchDoc[] = []) {
 }
 
 /** AND first for precision; fall back to OR so a multi-word query never returns nothing. */
-export function runSearch(index: MiniSearch<IndexedDoc>, query: string, topic?: string) {
-  const filter = topic
-    ? (r: SearchResult) => Array.isArray(r.topics) && r.topics.includes(topic)
-    : undefined;
+export function runSearch(
+  index: MiniSearch<IndexedDoc>,
+  query: string,
+  topic?: string,
+  type?: SearchDoc["type"],
+) {
+  const filter = (r: SearchResult) =>
+    (!type || r.type === type) && (!topic || (Array.isArray(r.topics) && r.topics.includes(topic)));
   let hits = index.search(query, { combineWith: "AND", filter });
   if (hits.length === 0) hits = index.search(query, { combineWith: "OR", filter });
   return hits;

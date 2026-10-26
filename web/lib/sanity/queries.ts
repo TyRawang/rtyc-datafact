@@ -86,7 +86,10 @@ export const allTopicsQuery = defineQuery(`
 
 export const searchDocsQuery = defineQuery(`
   *[_type == "claimReview" && defined(slug.current)]{
-    "id": slug.current,
+    "id": "review:" + slug.current,
+    "type": "review",
+    "url": "/reviews/" + slug.current,
+    "title": question,
     question,
     claimText,
     claimTranslation,
@@ -95,7 +98,24 @@ export const searchDocsQuery = defineQuery(`
     "topics": topics[]->slug.current,
     "topicTitles": topics[]->title,
     searchKeywords,
+    "body": array::join(array::compact([speaker, publisher]), " "),
     "evidenceText": pt::text(evidence)
+  } + *[_type == "source"]{
+    "id": "source:" + _id,
+    "type": "source",
+    "url": "/sources/" + _id,
+    title,
+    "subtitle": array::join(array::compact([publisher, string(date)]), " · "),
+    "body": array::join(array::compact([publisher, language, notes]), " "),
+    "searchKeywords": []
+  } + *[_type == "dataset"]{
+    "id": "dataset:" + _id,
+    "type": "dataset",
+    "url": "/datasets",
+    title,
+    "subtitle": array::join(array::compact([source->title, geographicCoverage]), " · "),
+    "body": array::join(array::compact([description, source->title, geographicCoverage, units, methodology, limitations]), " "),
+    "searchKeywords": []
   }
 `);
 

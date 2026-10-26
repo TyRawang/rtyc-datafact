@@ -99,7 +99,7 @@ export function Browse({
     let stale = false;
     loadIndex()
       .then((index) => {
-        if (!stale) setResults({ q, topic, hits: runSearch(index, q, topic) as Hits });
+        if (!stale) setResults({ q, topic, hits: runSearch(index, q, topic, "review") as Hits });
       })
       .catch(() => {});
     return () => {
@@ -172,12 +172,13 @@ export function Browse({
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-x-8 gap-y-12">
           {hits.map((r) => {
             const ex = excerptFor(r, r.terms);
-            const summary = bySlug.get(r.id);
+            const slug = r.id.replace(/^review:/, "");
+            const summary = bySlug.get(slug);
             return (
               <article key={r.id}>
                 <div className="eyebrow mb-3">{r.topicTitles?.[0] ?? "Claim review"}</div>
                 <h3>
-                  <Link href={`/reviews/${encodeURIComponent(r.id)}`} className="story-title text-2xl">
+                  <Link href={`/reviews/${encodeURIComponent(slug)}`} className="story-title text-2xl">
                     {r.question}
                   </Link>
                 </h3>

@@ -149,7 +149,7 @@ export function SiteHeader({ topics }: { topics: TopicRef[] }) {
             const q = query.trim();
             setSearchOpen(false);
             setQuery("");
-            router.push(q ? `/reviews?q=${encodeURIComponent(q)}` : "/reviews");
+            router.push(q ? `/search?q=${encodeURIComponent(q)}` : "/reviews");
           }}
           onKeyDown={(e) => {
             if (e.key === "Escape") setSearchOpen(false);
@@ -165,7 +165,7 @@ export function SiteHeader({ topics }: { topics: TopicRef[] }) {
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search a claim, a question, or a keyword in any language"
+            placeholder="Search reviews, sources, and datasets in any language"
           />
           <button className="primary" type="submit">
             Search
