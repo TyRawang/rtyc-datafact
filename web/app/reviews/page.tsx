@@ -16,8 +16,10 @@ export default async function ReviewsPage({
     sanityFetch<ReviewSummary[]>({ query: allReviewsQuery }),
     sanityFetch<TopicRef[]>({ query: allTopicsQuery }),
   ]);
+  // Keyed on the URL so a header search from this same page re-initialises the browse state.
   return (
     <Browse
+      key={`${q ?? ""}|${topic ?? ""}`}
       reviews={reviews ?? []}
       topics={(topics ?? []).filter((t) => (t.count ?? 0) > 0)}
       initialTopic={topic}

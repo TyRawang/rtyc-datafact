@@ -128,19 +128,21 @@ export function Browse({
           "Search by question, by the wording of the claim in any language, or by a keyword. Filter by topic."}
       </p>
 
-      <div className="grid md:grid-cols-[1fr_auto] gap-5 items-center mb-10" role="search">
-        <label>
+      <div className="mb-10" role="search">
+        <label className="block">
           <span className="sr-only">Search claim reviews</span>
           <input
+            id="reviews-search"
             className="field"
             type="search"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="e.g. boarding schools, 寄宿制学校, relocation…"
             autoComplete="off"
+            autoFocus={Boolean(initialQuery)}
           />
         </label>
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filter by topic">
+        <div className="flex flex-wrap gap-2 mt-4" role="group" aria-label="Filter by topic">
           <button type="button" className="pill" aria-pressed={topic === ""} onClick={() => setTopic("")}>
             All
           </button>

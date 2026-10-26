@@ -146,7 +146,10 @@ export function SiteHeader({ topics }: { topics: TopicRef[] }) {
           role="search"
           onSubmit={(e) => {
             e.preventDefault();
-            router.push(`/reviews?q=${encodeURIComponent(query.trim())}`);
+            const q = query.trim();
+            setSearchOpen(false);
+            setQuery("");
+            router.push(q ? `/reviews?q=${encodeURIComponent(q)}` : "/reviews");
           }}
           onKeyDown={(e) => {
             if (e.key === "Escape") setSearchOpen(false);
