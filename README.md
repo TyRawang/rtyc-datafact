@@ -45,11 +45,20 @@ npm run dev                  # Studio on http://localhost:3333
 cd ../web && npm install && npm run dev   # site on http://localhost:3000
 ```
 
-Still to do at deployment time:
+Deployed:
 
-1. Deploy `web/` to a Node host (Vercel is the simplest) with the same env vars as `web/.env.local`.
-2. Deploy the Studio with `npm run deploy` in `studio/`, and set `SANITY_STUDIO_PREVIEW_URL` to the production site URL.
-3. Create a webhook under API → Webhooks pointing at `https://<site>/api/revalidate`, trigger on create, update, and delete for all document types, and paste the value of `SANITY_REVALIDATE_SECRET` from `web/.env.local` as its secret. Published changes then appear on the next request; without it, pages refresh within an hour.
+| Piece | Where |
+|---|---|
+| Public site | https://rtyc-datafact-zeta.vercel.app (Vercel, root directory `web`, env vars copied from `web/.env.local`) |
+| Studio | https://rtyc-datafact.sanity.studio (deploy updates with `npm run deploy` in `studio/`) |
+| Webhook | "revalidate" → `/api/revalidate`, production dataset, create/update/delete, secret set. Verified delivering HTTP 200. |
+
+Operational scripts in `studio/scripts/` (run with `npx sanity exec <script> --with-user-token`):
+
+- `setup-web-env.ts` creates a viewer token and writes `web/.env.local`.
+- `set-webhook-secret.ts` copies the revalidate secret from `web/.env.local` onto the webhook and fixes its URL and triggers. Pass `SITE_URL=https://…` if the site moves.
+
+When the site gets a custom domain: add it to Vercel, add it as a CORS origin in Sanity, run `SITE_URL=https://<domain> npx sanity exec scripts/set-webhook-secret.ts --with-user-token`, and set `SANITY_STUDIO_PREVIEW_URL` to it before the next Studio deploy.
 
 Draft preview: open the **Presentation** tab in the Studio. It loads the site with draft mode on, using the read token, so unpublished reviews can be checked in the real layout.
 
