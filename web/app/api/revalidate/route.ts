@@ -16,7 +16,9 @@ export async function POST(req: NextRequest) {
   try {
     const { isValidSignature, body } = await parseBody<{ _type?: string; _id?: string }>(req, revalidateSecret);
     if (!isValidSignature) return new Response("Invalid signature", { status: 401 });
-    revalidateTag(CONTENT_TAG, "max");
+    // Expire immediately rather than stale-while-revalidate: a burst of publishes
+    // otherwise regenerates pages from stale data and leaves them cached for an hour.
+    revalidateTag(CONTENT_TAG, { expire: 0 });
     return NextResponse.json({ revalidated: true, type: body?._type, id: body?._id, at: Date.now() });
   } catch (err) {
     return new Response(err instanceof Error ? err.message : "Bad request", { status: 400 });
